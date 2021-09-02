@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { getMovies } from "./services/fakeMovieService";
+import { getMovies, deleteMovie } from "./services/fakeMovieService";
 import { getGenres } from "./services/fakeGenreService";
 import Table from "./table";
 import ListGroup from "./listGroup";
@@ -29,9 +29,11 @@ class Movies extends Component {
     });
   }
   handleDelete = (movie, dataLength) => {
-    const AllMovies = [...this.state.movies];
+    // const AllMovies = [...this.state.movies];
     const page = { ...this.state.page };
-    const movies = AllMovies.filter((m) => m._id !== movie._id);
+    // const movies = AllMovies.filter((m) => m._id !== movie._id);
+    let movies = {};
+    movies = deleteMovie(movie._id);
     this.setState({ movies });
     const selectedPage = this.state.page.currentPage;
     const realLength = dataLength;
@@ -94,14 +96,14 @@ class Movies extends Component {
     return (
       <div className="container">
         <div className="row">
-          <div className="col-sm-3">
+          <div className="col-md-4">
             <ListGroup
               data={genre}
               handleGenre={this.handleGenre}
               selectedGenre={selectedGenre}
             />
           </div>
-          <div className="col-sm">
+          <div className="col-md-8">
             <SearchField data={searchField} onSearch={this.onSearch} />
 
             <Link to="movies/new" className="btn btn-primary mb-3">

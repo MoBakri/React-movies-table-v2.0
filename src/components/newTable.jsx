@@ -45,7 +45,6 @@ class NewTable extends MainForm {
   }
 
   render() {
-    console.log(this.state.data);
     const { data, genres } = this.state;
     return (
       <form onSubmit={this.submitted} className="container">
