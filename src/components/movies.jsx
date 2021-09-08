@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { getMovies, deleteMovie } from "./services/fakeMovieService";
-import { getGenres } from "./services/fakeGenreService";
+import { getMovies, deleteMovie, likedMovie } from "./services/moviesService";
+import { getGenres } from "./services/genreService";
 import Table from "./table";
 import ListGroup from "./listGroup";
 import SearchField from "./searchField";
@@ -8,7 +8,7 @@ import Pagination from "./common/pagination";
 import { Paginate } from "./misc/paginate";
 import { Link } from "react-router-dom";
 import _ from "lodash";
-
+import { toast } from "react-toastify";
 class Movies extends Component {
   state = {
     movies: [],
@@ -20,21 +20,27 @@ class Movies extends Component {
     searchField: { value: "" },
     sort: { path: "title", order: "asc" },
   };
-  componentDidMount() {
-    const movies = getMovies();
-    const genre = getGenres();
+  async componentDidMount() {
+    const { data: movies } = await getMovies();
+    const { data: genre } = await getGenres();
     this.setState({
       movies,
       genre: [{ key: "All-Genre", name: "All Genres" }, ...genre],
     });
   }
-  handleDelete = (movie, dataLength) => {
-    // const AllMovies = [...this.state.movies];
+  handleDelete = async (movie, dataLength) => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter((m) => m._id !== movie._id);
+    try {
+      await deleteMovie(movie._id);
+      this.setState({ movies });
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        toast.error("Something Bad Happend when deleted this movie");
+        this.setState({ movies: originalMovies });
+      }
+    }
     const page = { ...this.state.page };
-    // const movies = AllMovies.filter((m) => m._id !== movie._id);
-    let movies = {};
-    movies = deleteMovie(movie._id);
-    this.setState({ movies });
     const selectedPage = this.state.page.currentPage;
     const realLength = dataLength;
     if (realLength === 1) {
@@ -42,11 +48,24 @@ class Movies extends Component {
       this.setState({ page });
     }
   };
-  handleLike = (liked) => {
+  handleLike = async (liked) => {
     const movies = [...this.state.movies];
     const index = movies.indexOf(liked);
     movies[index].like = !liked.like;
     this.setState({ movies });
+    try {
+      await likedMovie(liked); //
+    } catch (error) {
+      if (error.response) {
+        console.log(error.response);
+      } else if (error.request) {
+        console.log(error.request);
+        //do something else
+      } else if (error.message) {
+        console.log(error.message);
+        //do something other than the other two
+      }
+    }
   };
   handlePageSelected = (selected) => {
     let page = { ...this.state.page };
@@ -79,6 +98,7 @@ class Movies extends Component {
   render() {
     const { movies, genre, page, sort, selectedGenre, searchField } =
       this.state;
+    const { user } = this.props;
     const filterMovies =
       selectedGenre && selectedGenre._id !== genre._id
         ? movies.filter((m) => m.genre._id === selectedGenre._id)
@@ -104,11 +124,15 @@ class Movies extends Component {
             />
           </div>
           <div className="col-md-8">
-            <SearchField data={searchField} onSearch={this.onSearch} />
+            {user && (
+              <SearchField data={searchField} onSearch={this.onSearch} />
+            )}
 
-            <Link to="movies/new" className="btn btn-primary mb-3">
-              add movie
-            </Link>
+            {user && (
+              <Link to="movies/new" className="btn btn-primary mb-3">
+                add movie
+              </Link>
+            )}
 
             <Table
               data={allMovies}
@@ -116,6 +140,7 @@ class Movies extends Component {
               handleLike={this.handleLike}
               sort={sort}
               handleHeadTable={this.handleHeadTable}
+              user={user}
             />
             <Pagination
               data={searchFilter}

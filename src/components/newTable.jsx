@@ -1,25 +1,33 @@
 import React from "react";
-import { getGenres } from "./services/fakeGenreService";
-import { getMovie, saveMovie } from "./services/fakeMovieService";
+import { getGenres } from "./services/genreService";
+import { saveMovie, getMovie } from "./services/moviesService";
 import MainForm from "./common/mainForm";
 import Joi from "joi-browser";
 
 class NewTable extends MainForm {
   state = {
-    data: { title: "", genreId: "", numberInStock: "", dailyRentalRate: "" },
+    data: {
+      title: "",
+      genreId: "",
+      numberInStock: "",
+      dailyRentalRate: "",
+    },
     genres: [],
     errors: {},
   };
-  componentDidMount() {
-    const genres = getGenres();
+  async componentDidMount() {
+    const { data: genres } = await getGenres();
     this.setState({ genres });
     const movieId = this.props.match.params.id;
     if (movieId === "new") {
       return this.setState({ new: true });
     }
-    const movie = getMovie(movieId);
-    if (!movie) return this.props.history.replace("/not-found");
-    this.setState({ data: this.viewData(movie) });
+    try {
+      const { data: movie } = await getMovie(movieId);
+      this.setState({ data: this.viewData(movie) });
+    } catch (err) {
+      return this.props.history.replace("/not-found");
+    }
   }
   viewData = (movie) => ({
     _id: movie._id,
@@ -36,12 +44,10 @@ class NewTable extends MainForm {
     numberInStock: Joi.number().min(0).max(100).required(),
     dailyRentalRate: Joi.number().min(0).max(10).required(),
   };
-  onSubmitted() {
+  async onSubmitted() {
     // send to server
-    const data = saveMovie(this.state.data);
-    this.setState({ data });
+    await saveMovie(this.state.data);
     this.props.history.push("/movies");
-    console.log("submitted");
   }
 
   render() {

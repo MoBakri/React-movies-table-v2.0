@@ -12,7 +12,11 @@ const InputField = ({ handleChange, data, name, label, type, error }) => {
         name={name}
         value={data[name]}
         onChange={handleChange}
-        placeholder={label === "Username" || label === "Password" ? label : ""}
+        placeholder={
+          label === "Username" || label === "Password" || label === "Email"
+            ? label
+            : ""
+        }
         className="form-control"
       />
       {error && <div className="alert alert-danger">{error}</div>}

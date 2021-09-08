@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-const NavBar = () => {
+const NavBar = ({ user }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       {/*eslint-disable*/}
@@ -21,9 +21,26 @@ const NavBar = () => {
           <Link to="/movies" className="nav-item nav-link">
             Movies
           </Link>
-          <Link to="/login" className="nav-item nav-link">
-            Login
-          </Link>
+          {!user && (
+            <React.Fragment>
+              <Link to="/register" className="nav-item nav-link">
+                Register
+              </Link>
+              <Link to="/login" className="nav-item nav-link">
+                Login
+              </Link>
+            </React.Fragment>
+          )}
+          {user && (
+            <React.Fragment>
+              <Link to="/" className="nav-item nav-link">
+                {`@${user.name}`}
+              </Link>
+              <Link to="/logout" className="nav-item nav-link">
+                logout
+              </Link>
+            </React.Fragment>
+          )}
         </div>
       </div>
     </nav>
