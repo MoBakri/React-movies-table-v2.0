@@ -140,7 +140,6 @@ class Movies extends Component {
               handleLike={this.handleLike}
               sort={sort}
               handleHeadTable={this.handleHeadTable}
-              user={user}
             />
             <Pagination
               data={searchFilter}
